@@ -1,4 +1,4 @@
-OBJECTS := QuantumCircuits-C/*c quant.c $(main)
+OBJECTS := QuantumCircuits-C/*c quant.c example.c $(main)
 CC=gcc
 
 CFLAGS = -O2 -lgsl -lgslcblas -lm -g
