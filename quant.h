@@ -26,6 +26,7 @@ typedef struct qap_column{
 typedef struct ant_map{
   double*** pheremone_map;
   int n;
+  int qubits;
   int columns;
 } ant_map;
 
@@ -73,7 +74,7 @@ void free_column(qap_column* c);
 qap_graph* make_graph(qap_column* c, int columns, int qubits);
 void free_graph(qap_graph* g);
 
-ant_map* make_ant_map(int n, int columns);
+ant_map* make_ant_map(int n, int columns, int qubits);
 void free_ant_map(ant_map* m);
 
 void add_route(qap_graph* g, int** route, double fitness, double learning_rate, double diffusion, double p_max);

@@ -13,4 +13,6 @@ dataset* epr_pair_dataset();
 
 q_op* generate_qft(int qubits);
 dataset* qft_dataset(int qubits, int examples);
+
+dataset* op_dataset(int qubits, q_op* op, int examples);
 #endif

@@ -103,3 +103,23 @@ dataset* qft_dataset(int qubits, int examples){
 
   return make_dataset(examples, X, Y);
 }
+
+dataset* op_dataset(int qubits, q_op* op, int examples){
+  q_state** X = malloc(examples * sizeof(q_state*));
+  q_state** Y = malloc(examples * sizeof(q_state*));
+
+  for(int i = 0; i < examples; i++){
+    X[i] = r_q_qubits(qubits);
+    Y[i] = apply_qop(op, X[i]);
+    q_state_normalize(X[i]);
+    q_state_normalize(Y[i]);
+    if(i < 10){
+      printf("\n\n");
+      q_state_print(X[i]);
+      printf("\n=>\n");
+      q_state_print(Y[i]);
+    }
+  }
+
+  return make_dataset(examples, X, Y);
+}

@@ -178,7 +178,7 @@ qap_graph* make_graph(qap_column* c, int columns, int qubits){
   g->qubits = qubits;
   g->ant_maps = malloc(qubits * sizeof(ant_map*));
   for(int i = 0; i < qubits; i++){
-    g->ant_maps[i] = make_ant_map(c->n, columns);
+    g->ant_maps[i] = make_ant_map(c->n, columns, qubits);
   }
   return g;
 }
@@ -191,11 +191,12 @@ void free_graph(qap_graph* g){
   free(g);
 }
 
-ant_map* make_ant_map(int n, int columns){
+ant_map* make_ant_map(int n, int columns, int qubits){
   ant_map* m = malloc(sizeof(ant_map));
   m->n = n;
   m->columns = columns;
-  m->pheremone_map = malloc(columns * sizeof(double**));
+  m->qubits = qubits;
+  m->pheremone_map = malloc((columns + 1) * sizeof(double**));
   m->pheremone_map[0] = malloc(sizeof(double*));
   m->pheremone_map[0][0] = malloc(n * sizeof(double));
   for(int i = 0; i < n; i++){
@@ -209,6 +210,14 @@ ant_map* make_ant_map(int n, int columns){
         m->pheremone_map[i][j][k] = 0.0;
       }
     }
+  }
+  m->pheremone_map[columns] = malloc(n * sizeof(double*));
+  for(int i = 0; i < n; i++){
+      
+      m->pheremone_map[columns][i] = malloc(qubits * sizeof(double));
+      for(int q = 0; q < qubits; q++){
+      	m->pheremone_map[columns][i][q] = 0.0;
+      }
   }
   return m;
 }
@@ -224,6 +233,11 @@ void free_ant_map(ant_map* m){
     }
     free(m->pheremone_map[i]);
   }
+  
+  for(int q = 0; q < m->n; q++){
+	free(m->pheremone_map[m->columns][q]);
+  }
+  free(m->pheremone_map[m->columns]);
 
   free(m->pheremone_map);
 
@@ -231,25 +245,27 @@ void free_ant_map(ant_map* m){
 }
 
 void add_route(qap_graph* g, int** route, double fitness, double learning_rate, double diffusion, double p_max){
-  for(int i = 0; i < g->qubits; i++){
-    //1st case
-    ant_map* m = g->ant_maps[i];
-    m->pheremone_map[0][0][route[i][0]] = m->pheremone_map[0][0][route[i][0]] + fitness;
-    //m->pheremone_map[0][0][route[i][0]] = (learning_rate * fitness);
-    if(m->pheremone_map[0][0][route[i][0]] > p_max){
-      m->pheremone_map[0][0][route[i][0]] = p_max;
-    }
-    int current = route[i][0];
-    for(int j = 1; j < m->columns; j++){
-      //printf("\nUpdate %lf -> %lf \n", m->pheremone_map[j][current][route[i][j]], (o * m->pheremone_map[j][current][route[i][j]]) + (learning_rate * fitness));
-      m->pheremone_map[j][current][route[i][j]] = m->pheremone_map[j][current][route[i][j]] + fitness;
-      //m->pheremone_map[j][current][route[i][j]] += (learning_rate * fitness);
-      if(m->pheremone_map[j][current][route[i][j]] > p_max){
-        m->pheremone_map[j][current][route[i][j]] = p_max;
-      }
-      current = route[i][j];
-    }
-  }
+  if (learning_rate != 0.0){
+	  for(int i = 0; i < g->qubits; i++){
+	    //1st case
+	    ant_map* m = g->ant_maps[i];
+	    m->pheremone_map[0][0][route[i][0]] = m->pheremone_map[0][0][route[i][0]] + fitness;
+	    //m->pheremone_map[0][0][route[i][0]] = (learning_rate * fitness);
+	    if(m->pheremone_map[0][0][route[i][0]] > p_max){
+	      m->pheremone_map[0][0][route[i][0]] = p_max;
+	    }
+	    int current = route[i][0];
+	    for(int j = 1; j < m->columns + 1; j++){
+	      //printf("\nUpdate %lf -> %lf \n", m->pheremone_map[j][current][route[i][j]], (o * m->pheremone_map[j][current][route[i][j]]) + (learning_rate * fitness));
+	      m->pheremone_map[j][current][route[i][j]] = m->pheremone_map[j][current][route[i][j]] + fitness;
+	      //m->pheremone_map[j][current][route[i][j]] += (learning_rate * fitness);
+	      if(m->pheremone_map[j][current][route[i][j]] > p_max){
+		m->pheremone_map[j][current][route[i][j]] = p_max;
+	      }
+	      current = route[i][j];
+	    }
+	  }
+}
 }
 
 void update_pheremone(qap_graph* g, double min, double max, double evaporation){
@@ -278,6 +294,17 @@ void update_pheremone(qap_graph* g, double min, double max, double evaporation){
           }
         }
       }
+      for(int k = 0; k < n; k++){
+        for(int l = 0; l < m->qubits; l++){
+          m->pheremone_map[m->columns][k][l] = m->pheremone_map[m->columns][k][l] * (1.0 - evaporation);
+          if(m->pheremone_map[m->columns][k][l] > max){
+            m->pheremone_map[m->columns][k][l] = max;
+          }
+          else if(m->pheremone_map[j][k][l] < min){
+            m->pheremone_map[m->columns][k][l] = min;
+          }
+        }
+      }
     }
   }
 }
@@ -297,6 +324,11 @@ void reset_pheremone(qap_graph* g, double min){
         for(int l = 0; l < n; l++){
           m->pheremone_map[j][k][l] = min;
         }
+      }
+    }
+    for(int k = 0; k < n; k++){
+      for(int l = 0; l < m->qubits; l++){
+        m->pheremone_map[m->columns][k][l] = min;
       }
     }
   }
@@ -361,7 +393,7 @@ int pick_from(double* weights, int* blocked, int* cooperate, double cooperate_bo
 }
 
 int* generate_route(qap_column* c, ant_map* m, int** blocked, int** cooperate, double cooperate_bonus, double elite_sel_p, int* elite_route){
-  int* route = malloc(m->columns * sizeof(int));
+  int* route = malloc((m->columns + 1) * sizeof(int));
   if(rand_double() <= elite_sel_p && !blocked[0][elite_route[0]]){
     route[0] = elite_route[0];
   }
@@ -396,12 +428,16 @@ int* generate_route(qap_column* c, ant_map* m, int** blocked, int** cooperate, d
 
 
   }
+  
+  route[m->columns] = pick_from(m->pheremone_map[m->columns][current], blocked[m->columns], cooperate[m->columns], cooperate_bonus, m->qubits);
+  blocked[m->columns][route[m->columns]] = 1;
+
   return route;
 }
 
 int** generate_routes(qap_graph* g, double elite_sel_p, double cooperate_bonus, int ** elite_routes){
-  int** blocked = malloc(g->columns * sizeof(int*));
-  int** cooperate = malloc(g->columns * sizeof(int*));
+  int** blocked = malloc((g->columns + 1) * sizeof(int*));
+  int** cooperate = malloc((g->columns + 1) * sizeof(int*));
   for(int i = 0; i < g->columns; i++){
     blocked[i] = malloc(g->column->n * sizeof(int));
     cooperate[i] = malloc(g->column->n * sizeof(int));
@@ -410,6 +446,15 @@ int** generate_routes(qap_graph* g, double elite_sel_p, double cooperate_bonus, 
       cooperate[i][j] = 0;
     }
   }
+  
+  blocked[g->columns] = malloc(g->qubits * sizeof(int));
+  cooperate[g->columns] = malloc(g->qubits * sizeof(int));
+  for(int j = 0; j < g->qubits; j++){
+    blocked[g->columns][j] = 0;
+    cooperate[g->columns][j] = 0;
+  }
+  
+  
   int** routes = malloc(g->qubits * sizeof(int*));
   int* order = malloc(g->qubits * sizeof(int));
   for(int i = 0; i < g->qubits; i++){
@@ -424,7 +469,7 @@ int** generate_routes(qap_graph* g, double elite_sel_p, double cooperate_bonus, 
       routes[order[i]] = generate_route(g->column, g->ant_maps[order[i]], blocked, cooperate, cooperate_bonus, elite_sel_p, NULL);
     }
   }
-  for(int i = 0; i < g->columns; i++){
+  for(int i = 0; i < g->columns + 1; i++){
     free(blocked[i]);
     free(cooperate[i]);
   }
@@ -505,7 +550,7 @@ q_op* make_q_op(qap_graph* g, int** routes){
     maps_to = malloc(g->qubits * sizeof(int));
   }
   for(int i = 0; i < g->qubits; i++){
-    maps_to[location[i]] = i;
+    maps_to[location[i]] = routes[i][g->columns];
   }
   q_op* map = q_swap(g->qubits, maps_to);
   q_op* new_op = q_op_multiply(map, op);
@@ -668,11 +713,83 @@ void free_dataset(dataset* d){
   free(d);
 }
 
+double get_p_min(double p_mid, double p_var, int gens, int l, int q);
+double get_p_min(double p_mid, double p_var, int gens, int l, int q){
+	double cycle_p = ((double)(gens % l))/((double)l) * 2 * 3.14159;
+	
+	double q_p = 1.0 / ((double)q * (double)q * (double)q);
+	//double cycle_p = 2.0 * ((double)(gens % l))/((double)l);
+	//if(cycle_p < 1.0){	
+	//	return (p_mid + p_var) * cycle_p * q_p;
+	//}	
+	//else{
+	//	return (1.0 + (1.0 - cycle_p)) * (p_mid + p_var) * q_p;	
+	//}
+	
+	//double q_p = 1.0 / ((double)q * (double)q * (double)q);
+	return (p_mid + (p_var * cos(cycle_p))) * q_p;
+}
+
+int** make_wire_route(qap_graph* g);
+int* generate_wire(qap_column* c, int** blocked, int columns);
+int pick_wire(qap_column* c, int* blocked);
+
+int** make_wire_route(qap_graph* g){
+  int** blocked = malloc(g->columns * sizeof(int*));
+  for(int i = 0; i < g->columns; i++){
+    blocked[i] = malloc(g->column->n * sizeof(int));
+    for(int j = 0; j < g->column->n; j++){
+      blocked[i][j] = 0;
+    }
+  }
+  int** routes = malloc(g->qubits * sizeof(int*));
+  int* order = malloc(g->qubits * sizeof(int));
+  for(int i = 0; i < g->qubits; i++){
+    order[i] = i;
+  }
+  randomize(order, g->qubits);
+  for(int i = 0; i < g->qubits; i++){
+    routes[order[i]] = generate_wire(g->column, blocked, g->columns);
+  }
+  for(int i = 0; i < g->columns; i++){
+    free(blocked[i]);
+  }
+  free(blocked);
+  return routes;
+}
+
+int* generate_wire(qap_column* c, int** blocked, int columns){
+  int* route = malloc(columns * sizeof(int));
+  route[0] = pick_wire(c, blocked[0]);
+  int current = route[0];
+  blocked[0][current] = 1;
+
+  for(int i = 1; i < columns; i++){
+    route[i] = pick_wire(c, blocked[i]);
+    current = route[i];
+    blocked[i][current] = 1;
+  }
+  return route;
+}
+
+int pick_wire(qap_column* c, int* blocked){
+  double total_weight = 0.0;
+  int last = 0;
+  int n = c->n;
+  for(int i = 0; i < n; i++){
+	if(blocked[i] == 0 && strcmp(c->f_set[c->f_index[i]]->name, "W") == 0){
+		return i;
+	}
+  }
+}
+
 int run_qap(params* p, dataset* d){
 
   int** elite_routes;
-  double elite_score = 0.0;
+  q_op* o = q_identity(p->g->qubits);
+  double elite_score = mean_square_fidelity(o, d);
 
+  printf("Init score %lf\n", elite_score);
   int iter = 0;
   int first = 0;
   double stag_score = 0.0;
@@ -695,7 +812,7 @@ int run_qap(params* p, dataset* d){
       else{
         cand_routes[a] = generate_routes(p->g, -1.0, p->cooperate_bonus, NULL);
       }
-      q_op* o = make_q_op(p->g, cand_routes[a]);
+      o = make_q_op(p->g, cand_routes[a]);
       scores[a] = mean_square_fidelity(o, d);
       if(scores[a] > best_score){
         best_ant = a;
@@ -709,13 +826,14 @@ int run_qap(params* p, dataset* d){
     }
     double sum = 0.0;
     int update = 0;
-    update_pheremone(p->g, p->p_min, p->p_max, p->p_evap);
+    double p_min = get_p_min(0.2, 0.2, iter, 500, p->g->qubits);
+    update_pheremone(p->g, p_min, p->p_max, p->p_evap);
     for(int a = 0; a < p->ants; a++){
       sum += scores[a];
       if(scores[a] > elite_score - 0.05){
-        add_route(p->g, cand_routes[a], scores[a], p->el_rate, p->p_diff, p->p_max);
+        add_route(p->g, cand_routes[a], scores[a], p->el_rate, 0.0, p->p_max);
       }
-      if(scores[a] > elite_score - 0.00001){
+      if(scores[a] > elite_score - 0.00001 || (scores[a] > elite_score - 0.00001 && count_op(p->g, cand_routes[a]) < elite_count)){
       //if(mod_score > mod_el_score - 0.0001){
         update = 1;
         if(first != 0){
@@ -746,7 +864,7 @@ int run_qap(params* p, dataset* d){
     free(cand_routes);
     free(scores);
     free(cand_size);
-    printf("] - %lf average, %lf best (%d stagnation)\r", sum / (double)p->ants, best_score, stagnation);
+    printf("] - %lf average, %lf best (%lf p_min)\r", sum / (double)p->ants, best_score, p_min);
     q_op* op = make_q_op(p->g, elite_routes);
     elite_score = mean_square_fidelity(op, d);
     q_op_free(op);
@@ -763,7 +881,7 @@ int run_qap(params* p, dataset* d){
     iter++;
   }
   printf("\n");
-  print_op(p->g, elite_routes);
+  //print_op(p->g, elite_routes);
   q_op* op = make_q_op(p->g, elite_routes);
   q_op_print(op);
   q_op_free(op);
