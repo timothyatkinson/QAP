@@ -43,6 +43,15 @@ typedef struct dataset{
   q_state** Y;
 } dataset;
 
+
+typedef struct error_dataset{
+  int entries;
+  q_state** X;
+  q_op** error_functions;
+  int error_count;
+  q_state*** Y;
+} error_dataset;
+
 typedef struct params{
   double target_score;
   int ants;
@@ -58,6 +67,32 @@ typedef struct params{
   double elite_sel_p;
   double cooperate_bonus;
 } params;
+
+typedef struct e_params{
+  double target_score;
+  int ants;
+  int max_runs;
+  qap_graph* g1;
+  qap_graph* g2;
+
+  double p_min;
+  double p_max;
+  double l_rate;
+  double el_rate;
+  double p_evap;
+  double p_diff;
+  double elite_sel_p;
+  double cooperate_bonus;
+} e_params;
+
+typedef struct result{
+  int gens;
+  double best_score;
+} result;
+
+result* make_result(int gens, double best_score);
+
+void free_result(result*);
 
 q_op* make_controllable(q_op* op);
 
@@ -94,9 +129,15 @@ q_op* make_q_op(qap_graph* g, int** routes);
 void print_op(qap_graph* g, int** routes);
 int count_op(qap_graph* g, int** routes);
 double mean_square_fidelity(q_op* op, dataset* dataset);
+double mean_square_fidelity_error(q_op* opA, q_op* opB, error_dataset* dataset);
 
 dataset* make_dataset(int entries, q_state** X, q_state** Y);
+error_dataset* make_error_dataset(int entries, q_state** X, q_state*** Y, q_op** error_functions, int error_count);
+
 void free_dataset(dataset* d);
 
-int run_qap(params* p, dataset* d);
+void free_error_dataset(error_dataset* d);
+
+result* run_qap(params* p, dataset* d);
+result* run_e_qap(e_params* p, error_dataset* d);
 #endif

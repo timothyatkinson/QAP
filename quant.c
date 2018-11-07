@@ -213,7 +213,7 @@ ant_map* make_ant_map(int n, int columns, int qubits){
   }
   m->pheremone_map[columns] = malloc(n * sizeof(double*));
   for(int i = 0; i < n; i++){
-      
+
       m->pheremone_map[columns][i] = malloc(qubits * sizeof(double));
       for(int q = 0; q < qubits; q++){
       	m->pheremone_map[columns][i][q] = 0.0;
@@ -233,7 +233,7 @@ void free_ant_map(ant_map* m){
     }
     free(m->pheremone_map[i]);
   }
-  
+
   for(int q = 0; q < m->n; q++){
 	free(m->pheremone_map[m->columns][q]);
   }
@@ -428,7 +428,7 @@ int* generate_route(qap_column* c, ant_map* m, int** blocked, int** cooperate, d
 
 
   }
-  
+
   route[m->columns] = pick_from(m->pheremone_map[m->columns][current], blocked[m->columns], cooperate[m->columns], cooperate_bonus, m->qubits);
   blocked[m->columns][route[m->columns]] = 1;
 
@@ -446,15 +446,15 @@ int** generate_routes(qap_graph* g, double elite_sel_p, double cooperate_bonus, 
       cooperate[i][j] = 0;
     }
   }
-  
+
   blocked[g->columns] = malloc(g->qubits * sizeof(int));
   cooperate[g->columns] = malloc(g->qubits * sizeof(int));
   for(int j = 0; j < g->qubits; j++){
     blocked[g->columns][j] = 0;
     cooperate[g->columns][j] = 0;
   }
-  
-  
+
+
   int** routes = malloc(g->qubits * sizeof(int*));
   int* order = malloc(g->qubits * sizeof(int));
   for(int i = 0; i < g->qubits; i++){
@@ -674,6 +674,31 @@ double mean_square_fidelity(q_op* op, dataset* dataset){
   return sum / (double)dataset->entries;
 }
 
+
+double mean_square_fidelity_error(q_op* opA, q_op* opB, error_dataset* dataset){
+  double sum = 0.0;
+  for(int i = 0; i < dataset->entries; i++){
+    q_state* res = apply_qop(opA, dataset->X[i]);
+    for(int j = 0; j < dataset->error_count; j++){
+        q_state* post_error = apply_qop(dataset->error_functions[j], res);
+        q_state* fix = apply_qop(opB, post_error);
+        q_state_normalize(fix);
+        double max_fid = 0.0;
+        for(int k = 0; k < dataset->error_count; k++){
+          double fid = fidelity(fix, dataset->Y[i][k]);
+          if(fid > max_fid){
+            max_fid = fid;
+          }
+        }
+        sum += (max_fid * max_fid);
+        q_state_free(post_error);
+        q_state_free(fix);
+    }
+    q_state_free(res);
+  }
+  return sum / ((double)dataset->entries * (double)dataset->error_count);
+}
+
 double print_mean_square_fidelity(q_op* op, dataset* dataset);
 double print_mean_square_fidelity(q_op* op, dataset* dataset){
   double sum = 0.0;
@@ -703,6 +728,17 @@ dataset* make_dataset(int entries, q_state** X, q_state** Y){
   return d;
 }
 
+
+error_dataset* make_error_dataset(int entries, q_state** X, q_state*** Y, q_op** error_functions, int error_count){
+  error_dataset* d = malloc(sizeof(error_dataset));
+  d->entries = entries;
+  d->X = X;
+  d->Y = Y;
+  d->error_functions = error_functions;
+  d->error_count = error_count;
+  return d;
+}
+
 void free_dataset(dataset* d){
   for(int i = 0; i < d->entries; i++){
     q_state_free(d->X[i]);
@@ -713,19 +749,36 @@ void free_dataset(dataset* d){
   free(d);
 }
 
+void free_error_dataset(error_dataset* d){
+  for(int i = 0; i < d->entries; i++){
+    q_state_free(d->X[i]);
+    for(int j = 0; j < d->error_count; j++){
+      q_state_free(d->Y[i][j]);
+    }
+    free(d->Y[i]);
+  }
+  free(d->X);
+  free(d->Y);
+  for(int i = 0; i < d->error_count; i++){
+    q_op_free(d->error_functions[i]);
+  }
+  free(d->error_functions);
+  free(d);
+}
+
 double get_p_min(double p_mid, double p_var, int gens, int l, int q);
 double get_p_min(double p_mid, double p_var, int gens, int l, int q){
 	double cycle_p = ((double)(gens % l))/((double)l) * 2 * 3.14159;
-	
+
 	double q_p = 1.0 / ((double)q * (double)q * (double)q);
 	//double cycle_p = 2.0 * ((double)(gens % l))/((double)l);
-	//if(cycle_p < 1.0){	
+	//if(cycle_p < 1.0){
 	//	return (p_mid + p_var) * cycle_p * q_p;
-	//}	
-	//else{
-	//	return (1.0 + (1.0 - cycle_p)) * (p_mid + p_var) * q_p;	
 	//}
-	
+	//else{
+	//	return (1.0 + (1.0 - cycle_p)) * (p_mid + p_var) * q_p;
+	//}
+
 	//double q_p = 1.0 / ((double)q * (double)q * (double)q);
 	return (p_mid + (p_var * cos(cycle_p))) * q_p;
 }
@@ -783,11 +836,11 @@ int pick_wire(qap_column* c, int* blocked){
   }
 }
 
-int run_qap(params* p, dataset* d){
+result* run_qap(params* p, dataset* d){
 
   int** elite_routes;
   q_op* o = q_identity(p->g->qubits);
-  double elite_score = mean_square_fidelity(o, d);
+  double elite_score = 0.0;
 
   printf("Init score %lf\n", elite_score);
   int iter = 0;
@@ -826,7 +879,7 @@ int run_qap(params* p, dataset* d){
     }
     double sum = 0.0;
     int update = 0;
-    double p_min = get_p_min(0.2, 0.2, iter, 500, p->g->qubits);
+    double p_min = get_p_min(0.3, 0.3, iter, 500, p->g->qubits);
     update_pheremone(p->g, p_min, p->p_max, p->p_evap);
     for(int a = 0; a < p->ants; a++){
       sum += scores[a];
@@ -853,13 +906,8 @@ int run_qap(params* p, dataset* d){
         free_routes(cand_routes[a], p->g->qubits);
       }
     }
-    add_route(p->g, elite_routes, elite_score, p->el_rate, p->p_diff, p->p_max);
-    if(update == 1){
-      stag_score = elite_score;
-      stagnation = 0;
-    }
-    else{
-      stagnation++;
+    if(first != 0){
+      add_route(p->g, elite_routes, elite_score, p->el_rate, p->p_diff, p->p_max);
     }
     free(cand_routes);
     free(scores);
@@ -887,5 +935,123 @@ int run_qap(params* p, dataset* d){
   q_op_free(op);
   //print_mean_square_fidelity(make_q_op(p->g, elite_routes), d);
   free_routes(elite_routes, p->g->qubits);
-  return iter;
+  return make_result(iter, elite_score);
+}
+
+
+result* run_e_qap(e_params* p, error_dataset* d){
+
+  int** elite_routesA;
+  int** elite_routesB;
+  double elite_score = 0.0;
+
+  printf("Init score %lf\n", elite_score);
+  int iter = 0;
+  int first = 0;
+
+  update_pheremone(p->g1, p->p_min, p->p_max, p->p_evap);
+  update_pheremone(p->g2, p->p_min, p->p_max, p->p_evap);
+
+  while(elite_score < p->target_score && iter < p->max_runs){
+   printf("%d: %f :[", iter, elite_score);
+    int*** cand_routesA = malloc(p->ants * sizeof(int**));
+    int*** cand_routesB = malloc(p->ants * sizeof(int**));
+    double* scores = malloc(p->ants * sizeof(double));
+    int best_ant = 0;
+    double best_score = 0.0;
+    for(int a = 0; a < p->ants; a++){
+      if(first != 0){
+        cand_routesA[a] = generate_routes(p->g1, p->elite_sel_p, p->cooperate_bonus, elite_routesA);
+        cand_routesB[a] = generate_routes(p->g2, p->elite_sel_p, p->cooperate_bonus, elite_routesB);
+      }
+      else{
+        cand_routesA[a] = generate_routes(p->g1, -1.0, p->cooperate_bonus, NULL);
+        cand_routesB[a] = generate_routes(p->g2, -1.0, p->cooperate_bonus, NULL);
+      }
+      q_op* o1 = make_q_op(p->g1, cand_routesA[a]);
+      q_op* o2 = make_q_op(p->g2, cand_routesB[a]);
+      scores[a] = mean_square_fidelity_error(o1, o2, d);
+      if(scores[a] > best_score){
+        best_ant = a;
+        best_score = scores[a];
+      }
+      q_op_free(o1);
+      q_op_free(o2);
+      if(a < 10){
+        printf("%lf, ", scores[a]);
+      }
+    }
+    double sum = 0.0;
+    int update = 0;
+    double p_min = get_p_min(0.3, 0.3, iter, 500, p->g1->qubits);
+    update_pheremone(p->g1, p_min, p->p_max, p->p_evap);
+    update_pheremone(p->g2, p_min, p->p_max, p->p_evap);
+    for(int a = 0; a < p->ants; a++){
+      sum += scores[a];
+      if(scores[a] > elite_score - 0.05){
+        add_route(p->g1, cand_routesA[a], scores[a], p->el_rate, 0.0, p->p_max);
+        add_route(p->g2, cand_routesB[a], scores[a], p->el_rate, 0.0, p->p_max);
+      }
+      if(scores[a] > elite_score - 0.00001){
+      //if(mod_score > mod_el_score - 0.0001){
+        update = 1;
+        if(first != 0){
+          free_routes(elite_routesA, p->g1->qubits);
+          free_routes(elite_routesB, p->g1->qubits);
+          elite_routesA = cand_routesA[a];
+          elite_routesB = cand_routesB[a];
+          elite_score = scores[a];
+        }
+        else{
+          first = 1;
+          elite_routesA = cand_routesA[a];
+          elite_routesB = cand_routesB[a];
+          elite_score = scores[a];
+        }
+      }
+      else{
+        free_routes(cand_routesA[a], p->g1->qubits);
+        free_routes(cand_routesB[a], p->g1->qubits);
+      }
+    }
+    if(first != 0){
+      add_route(p->g1, elite_routesA, elite_score, p->el_rate, p->p_diff, p->p_max);
+      add_route(p->g2, elite_routesB, elite_score, p->el_rate, p->p_diff, p->p_max);
+    }
+    free(cand_routesA);
+    free(cand_routesB);
+    free(scores);
+    printf("] - %lf average, %lf best (%lf p_min)\r", sum / (double)p->ants, best_score, p_min);
+    q_op* op1 = make_q_op(p->g1, elite_routesA);
+    q_op* op2 = make_q_op(p->g2, elite_routesB);
+    elite_score = mean_square_fidelity_error(op1, op2, d);
+    q_op_free(op1);
+    q_op_free(op2);
+    iter++;
+  }
+  printf("\n");
+  //print_op(p->g, elite_routes);
+  q_op* op1 = make_q_op(p->g1, elite_routesA);
+  print_op(p->g1, elite_routesA);
+  q_op_print(op1);
+  q_op_free(op1);
+  q_op* op2 = make_q_op(p->g2, elite_routesB);
+  print_op(p->g2, elite_routesB);
+  q_op_print(op2);
+  q_op_free(op2);
+  //print_mean_square_fidelity(make_q_op(p->g, elite_routes), d);
+  free_routes(elite_routesA, p->g1->qubits);
+  free_routes(elite_routesB, p->g2->qubits);
+  return make_result(iter, elite_score);
+}
+
+result* make_result(int gens, double best_score){
+  result* res = malloc(sizeof(result));
+  res->gens = gens;
+  res->best_score = best_score;
+  return res;
+}
+
+void free_result(result* res){
+  free(res);
 }

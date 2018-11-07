@@ -11,8 +11,8 @@ int main (void)
   function* T = make_function(q_t(), "T", 1);
   function* H = make_function(q_hadamard(), "Ha", 1);
   function* X = make_function(q_pauli_X(), "X", 1);
-  function* Y = make_function(q_pauli_Y(), "Y", 0);
-  function* Z = make_function(q_pauli_Z(), "Z", 0);
+  function* Y = make_function(q_pauli_Y(), "Y", 1);
+  function* Z = make_function(q_pauli_Z(), "Z", 1);
   function* cX = make_function(q_cX(), "cX", 0);
   function* cT = make_function(q_ct(), "cT", 0);
   function* r2 = make_function(q_rot_z(1.0/2.0), "r1/2", rc);
@@ -40,6 +40,7 @@ int main (void)
   function* rz64 = make_function(r_z(M_PI/64.0), "rz1/64", rc);
   function* rz128 = make_function(r_z(M_PI/128.0), "rz1/128", rc);
   function* W = make_function(q_identity(1), "W", 0);
+  function* Td = make_function(q_td(), "Td", 1);
 
   int* map = malloc(2 * sizeof(int));
   map[0] = 1;
@@ -84,8 +85,8 @@ int main (void)
   f_set[2] = X;
   f_set[3] = W;
   f_set[4] = Swap;
-  f_set[5] = r16;
-  f_set[6] = W;
+  f_set[5] = Td;
+  f_set[6] = Y;
   f_set[7] = r64;
   f_set[8] = Swap;
   f_set[9] = W;
@@ -109,19 +110,22 @@ int main (void)
 
   qap_graph* graph = make_graph(c, 15, qubits);
 
-  dataset* d = qft_dataset(qubits, 100);
+  //dataset* d = qft_dataset(qubits, 20);
+  dataset* d = gdo_dataset(qubits, 20);
+  //error_dataset* e = bit_flip_dataset(20);
+  //free_error_dataset(e);
   //dataset* d = epr_pair_dataset();
-  //dataset* d = op_dataset(qubits, q_crot_z(1.0/16.0), 100);
+  //dataset* d = op_dataset(qubits, q_toffoli(), 100);
   params* p = malloc(sizeof(params));
-  p->target_score = 0.999;
+  p->target_score = 0.98;
   p->ants = 50;
-  p->max_runs = 40000;
+  p->max_runs = 20000;
   p->g = graph;
   p->p_min = 0.1;
-  p->p_max =  2.5 * (qubits - 1);
+  p->p_max =  10.0;
   p->l_rate = 1.0;
   p->el_rate = 1.0;
-  p->p_diff = 0.5;
+  p->p_diff = 0.1;
   p->p_evap = 0.1;
   p->elite_sel_p = 0.0;
   p->cooperate_bonus = 0.0;
@@ -129,8 +133,8 @@ int main (void)
 
   int n = 100;
 
-  int* qap = malloc(n * sizeof(int));
-  int* r = malloc(n * sizeof(int));
+  result** qap = malloc(n * sizeof(result*));
+  result** r = malloc(n * sizeof(result*));
   int columns = 20 * (qubits - 2);
   if (columns == 0){
 	columns = 10;
@@ -142,7 +146,7 @@ int main (void)
     if(i != 0){
       free_graph(p->g);
     }
-    p->g = make_graph(c, 5 + (5 * (qubits - 1) * (qubits - 1)), qubits);
+    p->g = make_graph(c, 10 * (qubits - 1), qubits);
     qap[i] = run_qap(p, d);
   }
 
@@ -153,6 +157,7 @@ int main (void)
   p->elite_sel_p = 0.0;
 
   for(int i = 0; i < n; i++){
+    printf("Run %d \n", i);
     free_graph(p->g);
     p->g = make_graph(c, 10 * (qubits - 1), qubits);
     r[i] = run_qap(p, d);
@@ -160,7 +165,9 @@ int main (void)
 
   printf("Learning vs. Random\n");
   for(int i = 0; i < n; i++){
-    printf("%d, %d\n", qap[i], r[i]);
+    printf("%d, %lf, %d, %lf\n", qap[i]->gens, qap[i]->best_score, r[i]->gens, r[i]->best_score);
+    free_result(qap[i]);
+    free_result(r[i]);
   }
 
   free(qap);
