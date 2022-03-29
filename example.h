@@ -6,9 +6,6 @@
 #include "quant.h"
 #include <stdio.h>
 
-q_state* r_q();
-q_state* r_q_qubits(int qubits);
-
 dataset* epr_pair_dataset();
 
 q_op* generate_qft(int qubits);

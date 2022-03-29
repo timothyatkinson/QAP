@@ -1,5 +1,30 @@
 #include "quant.h"
 
+q_state* r_q(){
+    double r_1 = rand_double() * 2.0 * M_PI;
+    double r_2 = rand_double() * 2.0 * M_PI;
+    gsl_complex z;
+    gsl_complex o;
+    GSL_SET_COMPLEX(&z, cos(r_1 / 2.0), 0.0);
+    GSL_SET_COMPLEX(&o, cos(r_2) * sin(r_1 / 2.0), sin(r_2) * sin(r_1 / 2.0));
+    q_state* r = q_state_calloc(1);
+    gsl_matrix_complex_set(r->vector, 0, 0, z);
+    gsl_matrix_complex_set(r->vector, 1, 0, o);
+    return r;
+}
+
+q_state* r_q_qubits(int qubits){
+    q_state* q = r_q();
+    for(int i = 1; i < qubits; i++){
+        q_state* qi = r_q();
+        q_state* q2 = q_state_tensor(qi, q);
+        q_state_free(qi);
+        q_state_free(q);
+        q = q2;
+    }
+    return q;
+}
+
 q_op* make_controllable(q_op* op){
   q_op* new_op = q_op_calloc(op->qubits + 1);
   int m = pow(2, op->qubits + 1);
@@ -728,6 +753,17 @@ dataset* make_dataset(int entries, q_state** X, q_state** Y){
   return d;
 }
 
+dataset* make_basic_dataset(q_op* op, int qubits, int examples) {
+    q_state** X = malloc(examples * sizeof(q_state*));
+    q_state** Y = malloc(examples * sizeof(q_state*));
+    for (int i = 0; i < examples; i++) {
+        X[i] = r_q_qubits(qubits);
+        Y[i] = apply_qop(op, X[i]);
+        q_state_normalize(X[i]);
+        q_state_normalize(Y[i]);
+    }
+    return make_dataset(examples, X, Y);
+}
 
 error_dataset* make_error_dataset(int entries, q_state** X, q_state*** Y, q_op** error_functions, int error_count){
   error_dataset* d = malloc(sizeof(error_dataset));

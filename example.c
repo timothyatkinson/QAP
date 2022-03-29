@@ -1,30 +1,5 @@
 #include "example.h"
 
-q_state* r_q(){
-    double r_1 = rand_double() * 2.0 * M_PI;
-    double r_2 = rand_double() * 2.0 * M_PI;
-    gsl_complex z;
-    gsl_complex o;
-    GSL_SET_COMPLEX(&z, cos(r_1 / 2.0), 0.0);
-    GSL_SET_COMPLEX(&o, cos(r_2) * sin(r_1 / 2.0), sin(r_2) * sin(r_1 / 2.0));
-    q_state* r = q_state_calloc(1);
-    gsl_matrix_complex_set(r->vector, 0, 0, z);
-    gsl_matrix_complex_set(r->vector, 1, 0, o);
-    return r;
-}
-
-q_state* r_q_qubits(int qubits){
-  q_state* q = r_q();
-  for(int i = 1; i < qubits; i++){
-    q_state* qi = r_q();
-    q_state* q2 = q_state_tensor(qi, q);
-    q_state_free(qi);
-    q_state_free(q);
-    q = q2;
-  }
-  return q;
-}
-
 dataset* epr_pair_dataset(){
   q_state** X = malloc(4 * sizeof(q_state));
   q_state** Y = malloc(4 * sizeof(q_state));
@@ -65,7 +40,6 @@ dataset* epr_pair_dataset(){
   dataset* d = make_dataset(4, X, Y);
   return d;
 }
-
 
 q_op* generate_qft(int qubits){
   q_op* op = q_op_calloc(qubits);
@@ -125,7 +99,6 @@ dataset* qft_dataset(int qubits, int examples){
 
   return make_dataset(examples, X, Y);
 }
-
 
 dataset* gdo_dataset(int qubits, int examples){
   q_op* gdo = generate_gdo(qubits);
@@ -234,7 +207,6 @@ error_dataset* bit_flip_dataset(int examples){
 
   return make_error_dataset(examples, X, Y, error_functions, 4);
 }
-
 
 error_dataset* phase_flip_dataset(int examples){
   q_state** X = malloc(examples * sizeof(q_state*));

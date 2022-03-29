@@ -94,6 +94,9 @@ result* make_result(int gens, double best_score);
 
 void free_result(result*);
 
+q_state* r_q();
+q_state* r_q_qubits(int qubits);
+
 q_op* make_controllable(q_op* op);
 
 q_op* one();
@@ -132,6 +135,7 @@ double mean_square_fidelity(q_op* op, dataset* dataset);
 double mean_square_fidelity_error(q_op* opA, q_op* opB, error_dataset* dataset);
 
 dataset* make_dataset(int entries, q_state** X, q_state** Y);
+dataset* make_basic_dataset(q_op* op, int qubits, int examples);
 error_dataset* make_error_dataset(int entries, q_state** X, q_state*** Y, q_op** error_functions, int error_count);
 
 void free_dataset(dataset* d);
