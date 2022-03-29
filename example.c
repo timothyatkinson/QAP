@@ -122,6 +122,18 @@ dataset* gdo_dataset(int qubits, int examples){
   return make_dataset(examples, X, Y);
 }
 
+dataset* toffoli_dataset(int examples) {
+    return make_basic_dataset(q_toffoli(), TOFFOLI_QUBITS, examples);
+}
+
+dataset* fredkin_dataset(int examples) {
+    return make_basic_dataset(q_fredkin(), FREDKIN_QUBITS, examples);
+}
+
+dataset* margolus_dataset(int examples) {
+    return make_basic_dataset(q_margolus(), MARGOLUS_QUBITS, examples);
+}
+
 dataset* op_dataset(int qubits, q_op* op, int examples){
   q_state** X = malloc(examples * sizeof(q_state*));
   q_state** Y = malloc(examples * sizeof(q_state*));
