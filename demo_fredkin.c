@@ -6,21 +6,30 @@ int main() {
     srand(time(NULL));
 
     // Prepare function set.
+    int no_of_functions = 13;
     int* map = malloc(2 * sizeof(int));
     map[0] = 1;
     map[1] = 0;
-    function** f_set = malloc(5 * sizeof(function));
-    f_set[0] = make_function(q_hadamard(), "H", 1);
-    f_set[1] = make_function(q_pauli_X(), "X", 1);
-    f_set[2] = make_function(q_t(), "T", 1);
-    f_set[3] = make_function(q_td(), "Td", 1);
-    f_set[4] = make_function(q_swap(2,map), "Swap", 0);
+    function** f_set = malloc(no_of_functions * sizeof(function));
+    f_set[0]  = make_function(q_identity(1), "Wire (I)", 0);
+    f_set[1]  = make_function(q_hadamard(), "H", 0);
+    f_set[2]  = make_function(q_pauli_X(), "X", 0);
+    f_set[3]  = make_function(q_pauli_Y(), "Y", 0);
+    f_set[4]  = make_function(q_pauli_Z(), "Z", 0);
+    f_set[5]  = make_function(q_s(), "Phase (S)", 0);
+    f_set[6]  = make_function(q_v(), "V", 0);
+    f_set[7]  = make_function(q_cX(), "Feynman (CNot)", 0);
+    f_set[8]  = make_function(q_swap(2, map), "Swap", 0);
+    f_set[9]  = make_function(q_cv(), "Controlled-V", 0);
+    f_set[10] = make_function(q_cvd(), "Controlled-V-Hermitian (C-V-dagger)", 0);
+    f_set[11] = make_function(q_toffoli(), "Toffoli", 0);
+    f_set[12] = make_function(q_margolus(), "Margolus", 0);
     free(map);
 
     // Set up QAP parameters.
     int qubits = 3,
         columns = 10 * (qubits - 1);
-    qap_column* c = make_column(f_set, 5, qubits);
+    qap_column* c = make_column(f_set, no_of_functions, qubits);
     qap_graph* graph = make_graph(c, columns, qubits);
     dataset* d = fredkin_dataset(20);
     params* p = malloc(sizeof(params));
