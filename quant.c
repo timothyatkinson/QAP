@@ -871,6 +871,8 @@ int pick_wire(qap_column* c, int* blocked){
 		return i;
 	}
   }
+  // TODO: What do we return here?
+  return 0;
 }
 
 result* run_qap(params* p, dataset* d){
