@@ -45,7 +45,7 @@ int main (void)
   q_op* op1 = q_op_multiply(B, A);
   q_op* op2 = q_op_multiply(C, op1);
   q_op* op3 = q_op_multiply(B, op2);
-  printf("\n\nOP 3\n\n");
+  //printf("\n\nOP 3\n\n");
   q_op* D = q_op_tensor(W->op, Swap->op);
   q_op* op4 = q_op_multiply(D, B);
   q_op* op5 = q_op_multiply(B, D);
@@ -53,9 +53,9 @@ int main (void)
   q_op* op7 = q_op_multiply(op5, op6);
   q_op* op8 = q_op_multiply(op7, op3);
   q_op_print(op3);
-  printf("\n\nOP 8\n\n");
+  //printf("\n\nOP 8\n\n");
   q_op_print(op8);
-  printf("MSFE = %lf\n", mean_square_fidelity_error(op3, op8, e));
+  //printf("MSFE = %lf\n", mean_square_fidelity_error(op3, op8, e));
   e_params* p = malloc(sizeof(e_params));
   p->target_score = 0.98;
   p->ants = 50;
@@ -77,10 +77,10 @@ int main (void)
   result** qap = malloc(n * sizeof(result*));
   result** r = malloc(n * sizeof(result*));
 
-  printf("Learning\n");
+  //printf("Learning\n");
 
   for(int i = 0; i < n; i++){
-    printf("Run %d \n", i);
+    //printf("Run %d \n", i);
     if(i != 0){
       free_graph(p->g1);
       free_graph(p->g2);
@@ -90,14 +90,14 @@ int main (void)
     qap[i] = run_e_qap(p, e);
   }
 
-  printf("Random\n");
+  //printf("Random\n");
 
   p->l_rate = 0.0;
   p->el_rate = 0.0;
   p->elite_sel_p = 0.0;
 
   for(int i = 0; i < n; i++){
-    printf("Run %d \n", i);
+    //printf("Run %d \n", i);
     free_graph(p->g1);
     free_graph(p->g2);
     p->g1 = make_graph(c, 10 * (qubits-1), qubits);
@@ -105,9 +105,9 @@ int main (void)
     r[i] = run_e_qap(p, e);
   }
 
-  printf("Learning vs. Random\n");
+  //printf("Learning vs. Random\n");
   for(int i = 0; i < n; i++){
-    printf("%d, %lf, %d, %lf\n", qap[i]->gens, qap[i]->best_score, r[i]->gens, r[i]->best_score);
+    //printf("%d, %lf, %d, %lf\n", qap[i]->gens, qap[i]->best_score, r[i]->gens, r[i]->best_score);
     free_result(qap[i]);
     free_result(r[i]);
   }

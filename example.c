@@ -1,30 +1,5 @@
 #include "example.h"
 
-q_state* r_q(){
-    double r_1 = rand_double() * 2.0 * M_PI;
-    double r_2 = rand_double() * 2.0 * M_PI;
-    gsl_complex z;
-    gsl_complex o;
-    GSL_SET_COMPLEX(&z, cos(r_1 / 2.0), 0.0);
-    GSL_SET_COMPLEX(&o, cos(r_2) * sin(r_1 / 2.0), sin(r_2) * sin(r_1 / 2.0));
-    q_state* r = q_state_calloc(1);
-    gsl_matrix_complex_set(r->vector, 0, 0, z);
-    gsl_matrix_complex_set(r->vector, 1, 0, o);
-    return r;
-}
-
-q_state* r_q_qubits(int qubits){
-  q_state* q = r_q();
-  for(int i = 1; i < qubits; i++){
-    q_state* qi = r_q();
-    q_state* q2 = q_state_tensor(qi, q);
-    q_state_free(qi);
-    q_state_free(q);
-    q = q2;
-  }
-  return q;
-}
-
 dataset* epr_pair_dataset(){
   q_state** X = malloc(4 * sizeof(q_state));
   q_state** Y = malloc(4 * sizeof(q_state));
@@ -51,9 +26,9 @@ dataset* epr_pair_dataset(){
     q_state_normalize(X[i]);
     Y[i] = apply_qop(bp, X[i]);
     q_state_normalize(Y[i]);
-    printf("\n\n");
+    //printf("\n\n");
     q_state_print(X[i]);
-    printf("\n=>\n");
+    //printf("\n=>\n");
     q_state_print(Y[i]);
   }
   q_op_free(H);
@@ -65,7 +40,6 @@ dataset* epr_pair_dataset(){
   dataset* d = make_dataset(4, X, Y);
   return d;
 }
-
 
 q_op* generate_qft(int qubits){
   q_op* op = q_op_calloc(qubits);
@@ -116,16 +90,15 @@ dataset* qft_dataset(int qubits, int examples){
     q_state_normalize(X[i]);
     q_state_normalize(Y[i]);
     if(i < 10){
-      printf("\n\n");
+      //printf("\n\n");
       q_state_print(X[i]);
-      printf("\n=>\n");
+      //printf("\n=>\n");
       q_state_print(Y[i]);
     }
   }
 
   return make_dataset(examples, X, Y);
 }
-
 
 dataset* gdo_dataset(int qubits, int examples){
   q_op* gdo = generate_gdo(qubits);
@@ -139,14 +112,26 @@ dataset* gdo_dataset(int qubits, int examples){
     q_state_normalize(X[i]);
     q_state_normalize(Y[i]);
     if(i < 10){
-      printf("\n\n");
+      //printf("\n\n");
       q_state_print(X[i]);
-      printf("\n=>\n");
+      //printf("\n=>\n");
       q_state_print(Y[i]);
     }
   }
 
   return make_dataset(examples, X, Y);
+}
+
+dataset* toffoli_dataset(int examples) {
+    return make_basic_dataset(q_toffoli(), TOFFOLI_QUBITS, examples);
+}
+
+dataset* fredkin_dataset(int examples) {
+    return make_basic_dataset(q_fredkin(), FREDKIN_QUBITS, examples);
+}
+
+dataset* margolus_dataset(int examples) {
+    return make_basic_dataset(q_margolus(), MARGOLUS_QUBITS, examples);
 }
 
 dataset* op_dataset(int qubits, q_op* op, int examples){
@@ -159,9 +144,9 @@ dataset* op_dataset(int qubits, q_op* op, int examples){
     q_state_normalize(X[i]);
     q_state_normalize(Y[i]);
     if(i < 10){
-      printf("\n\n");
+      //printf("\n\n");
       q_state_print(X[i]);
-      printf("\n=>\n");
+      //printf("\n=>\n");
       q_state_print(Y[i]);
     }
   }
@@ -199,9 +184,9 @@ error_dataset* bit_flip_dataset(int examples){
     Y[i][2] = apply_qop(G, a2);
     Y[i][3] = apply_qop(H, a2);
     if(i < 10){
-      printf("\n\n");
+      //printf("\n\n");
       q_state_print(X[i]);
-      printf("\n=>\n");
+      //printf("\n=>\n");
       q_state_print(Y[i][0]);
       q_state_print(Y[i][1]);
       q_state_print(Y[i][2]);
@@ -214,16 +199,16 @@ error_dataset* bit_flip_dataset(int examples){
   q_op_free(G);
   q_op_free(H);
   error_functions[0] = q_op_tensor(A, W);
-  printf("Error 1\n");
+  //printf("Error 1\n");
   q_op_print(error_functions[0]);
   error_functions[1] = q_op_tensor(B, W);
-  printf("Error 2\n");
+  //printf("Error 2\n");
   q_op_print(error_functions[1]);
   error_functions[2] = q_op_tensor(W, B);
-  printf("Error 3\n");
+  //printf("Error 3\n");
   q_op_print(error_functions[2]);
   error_functions[3] = q_op_tensor(W, C);
-  printf("Error 4\n");
+  //printf("Error 4\n");
   q_op_print(error_functions[3]);
 
   q_op_free(x);
@@ -234,7 +219,6 @@ error_dataset* bit_flip_dataset(int examples){
 
   return make_error_dataset(examples, X, Y, error_functions, 4);
 }
-
 
 error_dataset* phase_flip_dataset(int examples){
   q_state** X = malloc(examples * sizeof(q_state*));
@@ -266,9 +250,9 @@ error_dataset* phase_flip_dataset(int examples){
     Y[i][2] = apply_qop(G, a2);
     Y[i][3] = apply_qop(H, a2);
     if(i < 10){
-      printf("\n\n");
+      //printf("\n\n");
       q_state_print(X[i]);
-      printf("\n=>\n");
+      //printf("\n=>\n");
       q_state_print(Y[i][0]);
       q_state_print(Y[i][1]);
       q_state_print(Y[i][2]);
@@ -281,16 +265,16 @@ error_dataset* phase_flip_dataset(int examples){
   q_op_free(G);
   q_op_free(H);
   error_functions[0] = q_op_tensor(A, W);
-  printf("Error 1\n");
+  //printf("Error 1\n");
   q_op_print(error_functions[0]);
   error_functions[1] = q_op_tensor(B, W);
-  printf("Error 2\n");
+  //printf("Error 2\n");
   q_op_print(error_functions[1]);
   error_functions[2] = q_op_tensor(W, B);
-  printf("Error 3\n");
+  //printf("Error 3\n");
   q_op_print(error_functions[2]);
   error_functions[3] = q_op_tensor(W, C);
-  printf("Error 4\n");
+  //printf("Error 4\n");
   q_op_print(error_functions[3]);
 
   q_op_free(x);

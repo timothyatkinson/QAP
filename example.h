@@ -6,15 +6,15 @@
 #include "quant.h"
 #include <stdio.h>
 
-q_state* r_q();
-q_state* r_q_qubits(int qubits);
-
 dataset* epr_pair_dataset();
 
 q_op* generate_qft(int qubits);
 q_op* generate_gdo(int qubits);
 dataset* qft_dataset(int qubits, int examples);
 dataset* gdo_dataset(int qubits, int examples);
+dataset* toffoli_dataset(int example);
+dataset* fredkin_dataset(int examples);
+dataset* margolus_dataset(int examples);
 
 dataset* op_dataset(int qubits, q_op* op, int examples);
 error_dataset* bit_flip_dataset(int examples);
