@@ -48,19 +48,26 @@ int main() {
     int n = 5;
     result** qap = malloc(n * sizeof(result*));
     result** r = malloc(n * sizeof(result*));
+    clock_t start_time, end_time;
+    double execution_time;
 
     // QAP Training.
     printf("QAP in progress...\n");
+    start_time = clock();
     for (int i = 0; i < n; i++){
         if (i != 0)
             free_graph(p->g);
         p->g = make_graph(c, columns, qubits);
         qap[i] = run_qap(p, d);
     }
-    export_results(qap, n, "./output/qap.csv");
+    export_results(qap, n, "./output/fredkin/qap.csv");
+    end_time = clock();
+    execution_time = ((double)(end_time - start_time)) / CLOCKS_PER_SEC;
+    printf("QAP finished in %lfs!\n\n", execution_time);
 
     // R-QAP Training.
     printf("R-QAP in progress...\n");
+    start_time = clock();
     p->l_rate = 0.0;
     p->el_rate = 0.0;
     p->elite_sel_p = 0.0;
@@ -69,7 +76,10 @@ int main() {
         p->g = make_graph(c, columns, qubits);
         r[i] = run_qap(p, d);
     }
-    export_results(r, n, "./output/r-qap.csv");
+    export_results(r, n, "./output/fredkin/r-qap.csv");
+    end_time = clock();
+    execution_time = ((double)(end_time - start_time)) / CLOCKS_PER_SEC;
+    printf("R-QAP finished in %lfs!\n", execution_time);
 
     free(qap);
     free(r);
@@ -77,5 +87,6 @@ int main() {
     free_graph(p->g);
     free_column(c);
     free(p);
+
     return 0;
 }
