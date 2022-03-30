@@ -32,9 +32,10 @@ class ResultStats:
         )
 
 
-stats_qap = ResultStats("qap", "fredkin", 0.98, "output/fredkin/qap.csv")
-stats_rqap = ResultStats("r-qap", "fredkin", 0.98, "output/fredkin/r-qap.csv")
-print(stats_qap)
-print(stats_rqap)
-print("Mann Whitney U p: " + str(stats_qap.mann_whitney_u(stats_rqap)))
-print("Vargha Delaney A: " + str(stats_qap.vargha_delaney_a(stats_rqap)))
+for gate in ["fredkin", "margolus", "toffoli"]:
+    stats_qap = ResultStats("qap", gate, 0.98, "output/" + gate + "/qap.csv")
+    stats_rqap = ResultStats("r-qap", gate, 0.98, "output" + gate + "/r-qap.csv")
+    print(stats_qap)
+    print(stats_rqap)
+    print("Mann Whitney U p: " + str(stats_qap.mann_whitney_u(stats_rqap)))
+    print("Vargha Delaney A: " + str(stats_qap.vargha_delaney_a(stats_rqap)))
