@@ -137,9 +137,9 @@ qap_column* generate_column(function** funcs, int func_count, int qubits){
 }
 
 void print_column(qap_column* column){
-  printf("QAP Column with %d Rows\n", column->oper_count);
+  //printf("QAP Column with %d Rows\n", column->oper_count);
   for(int i = 0; i < column->oper_count; i++){
-    printf("%d: %s\n", i, column->opers[i]->name);
+    //printf("%d: %s\n", i, column->opers[i]->name);
     q_op_print(column->opers[i]->op);
   }
 }
@@ -186,7 +186,7 @@ void free_graph(qap_graph* graph){
 }
 
 void print_graph(qap_graph* graph){
-  printf("Graph with %d columns\n", graph->columns);
+  //printf("Graph with %d columns\n", graph->columns);
   print_column(graph->column);
 }
 
@@ -201,26 +201,26 @@ function* make_function(q_op* op, int qubits, char* name){
 void print_ant_map(qap_graph* graph){
   int rows = graph->column->oper_count;
   int columns = graph->columns;
-  printf("Ant Map with %d columns and %d rows\n", columns, rows);
-  printf("Column 0 (init choice)\n  ");
+  //printf("Ant Map with %d columns and %d rows\n", columns, rows);
+  //printf("Column 0 (init choice)\n  ");
   for(int i = 0; i < rows; i++){
     if(i != 0){
-      printf(", ");
+      //printf(", ");
     }
-    printf("%lf", graph->ant_map[0][0][i]);
+    //printf("%lf", graph->ant_map[0][0][i]);
   }
-  printf("\n");
+  //printf("\n");
   for(int i = 1; i < columns; i++){
-    printf("Column %d:\n", i);
+    //printf("Column %d:\n", i);
     for(int j = 0; j < rows; j++){
-      printf("  Row %d:\n   ", j);
+      //printf("  Row %d:\n   ", j);
       for(int k = 0; k < rows; k++){
         if(k != 0){
-          printf(", ");
+          //printf(", ");
         }
-        printf("%lf", graph->ant_map[i][j][k]);
+        //printf("%lf", graph->ant_map[i][j][k]);
       }
-      printf("\n");
+      //printf("\n");
     }
   }
 }
@@ -309,7 +309,7 @@ int pick_from(double* pheremones, int choices){
       return i;
     }
   }
-  printf("Error: Could not pick Pheremone!\n");
+  //printf("Error: Could not pick Pheremone!\n");
   exit(0);
 }
 
@@ -485,17 +485,17 @@ result* run_qap(params* params){
       }
       q_op_free(op);
     }
-    printf("\rIteration %d (%d). Ants have found solution with MSF %lf", iter, stag, elite_score);
-    printf(" Scores [");
+    //printf("\rIteration %d (%d). Ants have found solution with MSF %lf", iter, stag, elite_score);
+    //printf(" Scores [");
     for(int a = 0; a < params->ants; a++){
       if(a == best_ant){
         lay_pheremone(params->graph, ant_routes[a], ant_scores[a], 0.0 , 0.0);
       }
       if( a < 10){
         if(a != 0){
-          printf(", ");
+          //printf(", ");
         }
-        printf("%lf (%d)", ant_scores[a], routes_equal(ant_routes[a], elite_route, params->graph->columns));
+        //printf("%lf (%d)", ant_scores[a], routes_equal(ant_routes[a], elite_route, params->graph->columns));
       }
       if(ant_scores[a] >= elite_score + 0.0001 && (iter == 0 || routes_equal(ant_routes[a], elite_route, params->graph->columns) != 1)){
         free(elite_route);
@@ -507,7 +507,7 @@ result* run_qap(params* params){
         free(ant_routes[a]);
       }
     }
-    printf("]           ");
+    //printf("]           ");
     //lay_pheremone(params->graph, elite_route, elite_score, params->l_rate, params->diffusion);
     if(stag < 0){
       reset_pheremone(params->graph, params->p_init);
@@ -528,17 +528,17 @@ result* run_qap(params* params){
   res->route_score = elite_score;
   res->route = elite_route;
   res->route_op = route_to_op(elite_route, params->graph);
-  printf("\n Finished on iteration %d with score %lf and with Route:\n", res->iter, res->route_score);
+  //printf("\n Finished on iteration %d with score %lf and with Route:\n", res->iter, res->route_score);
   for(int i = 0; i < params->graph->columns; i++){
     if(i != 0){
-      printf(", ");
+      //printf(", ");
     }
-    printf("%d", res->route[i]);
+    //printf("%d", res->route[i]);
   }
 
-  printf("\nOp: \n");
+  //printf("\nOp: \n");
   q_op_print(res->route_op);
-  printf("\n");
+  //printf("\n");
 
   return res;
 }

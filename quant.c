@@ -158,23 +158,23 @@ qap_column* make_column(function** f_set, int functions, int qubits){
 }
 
 void print_column(qap_column* c){
-  printf("%d, %d over %d fs\n", c->n, c->f, c->functions);
-  printf("\nTrack Index\n");
+  //printf("%d, %d over %d fs\n", c->n, c->f, c->functions);
+  //printf("\nTrack Index\n");
   for(int i = 0; i < c->f; i++){
     int func = c->track_index[i][0][0];
-    printf("%d (%s): ", func, c->f_set[func]->name);
+    //printf("%d (%s): ", func, c->f_set[func]->name);
     for(int j = 0; j < c->f_set[func]->qubits + c->f_set[func]->controllable; j++){
-      printf(" %d,", c->track_index[i][1][j]);
+      //printf(" %d,", c->track_index[i][1][j]);
     }
     q_op_print(c->f_set[func]->op);
     if(c->f_set[func]->controllable == 1){
       q_op_print(c->f_set[func]->control_op);
     }
-    printf("\n");
+    //printf("\n");
   }
-  printf("\nVertical Column\n");
+  //printf("\nVertical Column\n");
   for(int i = 0; i < c->n; i++){
-    printf("%d, %d\n", c->f_index[i], c->q_index[i]);
+    //printf("%d, %d\n", c->f_index[i], c->q_index[i]);
   }
 }
 
@@ -282,7 +282,7 @@ void add_route(qap_graph* g, int** route, double fitness, double learning_rate, 
 	    }
 	    int current = route[i][0];
 	    for(int j = 1; j < m->columns + 1; j++){
-	      //printf("\nUpdate %lf -> %lf \n", m->pheremone_map[j][current][route[i][j]], (o * m->pheremone_map[j][current][route[i][j]]) + (learning_rate * fitness));
+	      ////printf("\nUpdate %lf -> %lf \n", m->pheremone_map[j][current][route[i][j]], (o * m->pheremone_map[j][current][route[i][j]]) + (learning_rate * fitness));
 	      m->pheremone_map[j][current][route[i][j]] = m->pheremone_map[j][current][route[i][j]] + fitness;
 	      //m->pheremone_map[j][current][route[i][j]] += (learning_rate * fitness);
 	      if(m->pheremone_map[j][current][route[i][j]] > p_max){
@@ -387,8 +387,8 @@ int pick_from(double* weights, int* blocked, int* cooperate, double cooperate_bo
       }
     }
   }
-  printf("Route selection failed\n");
-    printf("\n [");
+  //printf("Route selection failed\n");
+    //printf("\n [");
     total_weight = 0.0;
     for(int i = 0; i < n; i++){
       if(blocked[i] == 0){
@@ -397,10 +397,10 @@ int pick_from(double* weights, int* blocked, int* cooperate, double cooperate_bo
           weight = weight * cooperate_bonus;
         }
         total_weight += weight;
-          printf("(%d-%lf = %lf) ", i, weights[i], total_weight);
+          //printf("(%d-%lf = %lf) ", i, weights[i], total_weight);
       }
     }
-    printf("], %lf chosen, ", in);
+    //printf("], %lf chosen, ", in);
     total_weight = 0.0;
     for(int i = 0; i < n; i++){
       if(blocked[i] == 0){
@@ -411,7 +411,7 @@ int pick_from(double* weights, int* blocked, int* cooperate, double cooperate_bo
         total_weight += weight;
       }
       if(in <= total_weight){
-        printf("%d chosen \n", i);
+        //printf("%d chosen \n", i);
         return i;
       }
     }
@@ -626,11 +626,11 @@ void print_op(qap_graph* g, int** routes){
   int* location = malloc(g->qubits * sizeof(int));
   for(int i = 0; i < g->qubits; i++){
     location[i] = i;
-    printf("Route %d: ", i);
+    //printf("Route %d: ", i);
     for(int j = 0; j < g->columns; j++){
-      printf("%d, ", routes[i][j]);
+      //printf("%d, ", routes[i][j]);
     }
-    printf("\n");
+    //printf("\n");
   }
   for(int i = 0; i < g->columns; i++){
     int up_to_q = 0;
@@ -649,40 +649,40 @@ void print_op(qap_graph* g, int** routes){
             present++;
             maps_to[location[q]] = up_to_q;
             location[q] = up_to_q;
-            printf(" loc%d=%d ", q, up_to_q);
+            //printf(" loc%d=%d ", q, up_to_q);
             up_to_q++;
           }
         }
       }
       if(present == f->qubits && (f->controllable == 0 || first_present == 0)){
-        printf(" %s ", f->name);
+        //printf(" %s ", f->name);
       }
       else if(present == f->qubits + f->controllable){
-        printf(" c%s ", f->name);
+        //printf(" c%s ", f->name);
       }
       else{
         for(int q = 0; q < present; q++){
-          printf(" W ");
+          //printf(" W ");
         }
       }
     }
-    printf(" (");
+    //printf(" (");
     for(int i = 0; i < g->qubits; i++){
-      printf(", %d", maps_to[i]);
+      //printf(", %d", maps_to[i]);
     }
-    printf(")\n");
+    //printf(")\n");
     free(maps_to);
     maps_to = malloc(g->qubits * sizeof(int));
   }
   for(int i = 0; i < g->qubits; i++){
-    printf("Location %d: %d\n", i, location[i]);
+    //printf("Location %d: %d\n", i, location[i]);
     maps_to[location[i]] = i;
   }
-  printf(" \n(");
+  //printf(" \n(");
   for(int i = 0; i < g->qubits; i++){
-    printf(", %d", maps_to[i]);
+    //printf(", %d", maps_to[i]);
   }
-  printf(")\n");
+  //printf(")\n");
   free(maps_to);
   free(location);
 }
@@ -729,20 +729,20 @@ double print_mean_square_fidelity(q_op* op, dataset* dataset);
 double print_mean_square_fidelity(q_op* op, dataset* dataset){
   double sum = 0.0;
   for(int i = 0; i < dataset->entries; i++){
-    printf("Input \n");
+    //printf("Input \n");
     q_state_print(dataset->X[i]);
     q_state* res = apply_qop(op, dataset->X[i]);
     q_state_normalize(res);
-    printf("Produces \n");
+    //printf("Produces \n");
     q_state_print(res);
-    printf("Expects \n");
+    //printf("Expects \n");
     q_state_print(dataset->Y[i]);
     double fid = fidelity(res, dataset->Y[i]);
-    printf("Fidelity %lf\n", fid);
+    //printf("Fidelity %lf\n", fid);
     sum += (fid * fid);
     q_state_free(res);
   }
-  printf("Mean %lf => %lf\n", sum, sum / (double)dataset->entries);
+  //printf("Mean %lf => %lf\n", sum, sum / (double)dataset->entries);
   return sum / (double)dataset->entries;
 }
 
@@ -879,7 +879,7 @@ result* run_qap(params* p, dataset* d){
   q_op* o = q_identity(p->g->qubits);
   double elite_score = 0.0;
 
-  printf("Init score %lf\n", elite_score);
+  //printf("Init score %lf\n", elite_score);
   int iter = 0;
   int first = 0;
   double stag_score = 0.0;
@@ -889,7 +889,7 @@ result* run_qap(params* p, dataset* d){
   update_pheremone(p->g, p->p_min, p->p_max, p->p_evap);
 
   while(elite_score < p->target_score && iter < p->max_runs){
-   printf("%d: %f (%d) :[", iter, elite_score, elite_count);
+   //printf("%d: %f (%d) :[", iter, elite_score, elite_count);
     int*** cand_routes = malloc(p->ants * sizeof(int**));
     double* scores = malloc(p->ants * sizeof(double));
     int* cand_size = malloc(p->ants * sizeof(int));
@@ -911,7 +911,7 @@ result* run_qap(params* p, dataset* d){
       cand_size[a] = count_op(p->g, cand_routes[a]);
       q_op_free(o);
       if(a < 10){
-        printf("%lf, ", scores[a]);
+        //printf("%lf, ", scores[a]);
       }
     }
     double sum = 0.0;
@@ -949,7 +949,7 @@ result* run_qap(params* p, dataset* d){
     free(cand_routes);
     free(scores);
     free(cand_size);
-    printf("] - %lf average, %lf best (%lf p_min)\r", sum / (double)p->ants, best_score, p_min);
+    //printf("] - %lf average, %lf best (%lf p_min)\r", sum / (double)p->ants, best_score, p_min);
     q_op* op = make_q_op(p->g, elite_routes);
     elite_score = mean_square_fidelity(op, d);
     q_op_free(op);
@@ -965,7 +965,7 @@ result* run_qap(params* p, dataset* d){
     }
     iter++;
   }
-  printf("\n");
+  //printf("\n");
   //print_op(p->g, elite_routes);
   q_op* op = make_q_op(p->g, elite_routes);
   q_op_print(op);
@@ -982,7 +982,7 @@ result* run_e_qap(e_params* p, error_dataset* d){
   int** elite_routesB;
   double elite_score = 0.0;
 
-  printf("Init score %lf\n", elite_score);
+  //printf("Init score %lf\n", elite_score);
   int iter = 0;
   int first = 0;
 
@@ -990,7 +990,7 @@ result* run_e_qap(e_params* p, error_dataset* d){
   update_pheremone(p->g2, p->p_min, p->p_max, p->p_evap);
 
   while(elite_score < p->target_score && iter < p->max_runs){
-   printf("%d: %f :[", iter, elite_score);
+   //printf("%d: %f :[", iter, elite_score);
     int*** cand_routesA = malloc(p->ants * sizeof(int**));
     int*** cand_routesB = malloc(p->ants * sizeof(int**));
     double* scores = malloc(p->ants * sizeof(double));
@@ -1015,7 +1015,7 @@ result* run_e_qap(e_params* p, error_dataset* d){
       q_op_free(o1);
       q_op_free(o2);
       if(a < 10){
-        printf("%lf, ", scores[a]);
+        //printf("%lf, ", scores[a]);
       }
     }
     double sum = 0.0;
@@ -1058,7 +1058,7 @@ result* run_e_qap(e_params* p, error_dataset* d){
     free(cand_routesA);
     free(cand_routesB);
     free(scores);
-    printf("] - %lf average, %lf best (%lf p_min)\r", sum / (double)p->ants, best_score, p_min);
+    //printf("] - %lf average, %lf best (%lf p_min)\r", sum / (double)p->ants, best_score, p_min);
     q_op* op1 = make_q_op(p->g1, elite_routesA);
     q_op* op2 = make_q_op(p->g2, elite_routesB);
     elite_score = mean_square_fidelity_error(op1, op2, d);
@@ -1066,7 +1066,7 @@ result* run_e_qap(e_params* p, error_dataset* d){
     q_op_free(op2);
     iter++;
   }
-  printf("\n");
+  //printf("\n");
   //print_op(p->g, elite_routes);
   q_op* op1 = make_q_op(p->g1, elite_routesA);
   print_op(p->g1, elite_routesA);

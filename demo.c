@@ -106,7 +106,7 @@ int main (void)
   qap_column* c = make_column(f_set, 6, qubits);
   print_column(c);
   //q_op_print(f3->control_op);
-  //printf("%s\n", f->name);
+  ////printf("%s\n", f->name);
 
   qap_graph* graph = make_graph(c, 15, qubits);
 
@@ -139,10 +139,10 @@ int main (void)
   if (columns == 0){
 	columns = 10;
   }
-  printf("Learning\n");
+  //printf("Learning\n");
 
   for(int i = 0; i < n; i++){
-    printf("Run %d \n", i);
+    //printf("Run %d \n", i);
     if(i != 0){
       free_graph(p->g);
     }
@@ -150,22 +150,22 @@ int main (void)
     qap[i] = run_qap(p, d);
   }
 
-  printf("Random\n");
+  //printf("Random\n");
 
   p->l_rate = 0.0;
   p->el_rate = 0.0;
   p->elite_sel_p = 0.0;
 
   for(int i = 0; i < n; i++){
-    printf("Run %d \n", i);
+    //printf("Run %d \n", i);
     free_graph(p->g);
     p->g = make_graph(c, 10 * (qubits - 1), qubits);
     r[i] = run_qap(p, d);
   }
 
-  printf("Learning vs. Random\n");
+  //printf("Learning vs. Random\n");
   for(int i = 0; i < n; i++){
-    printf("%d, %lf, %d, %lf\n", qap[i]->gens, qap[i]->best_score, r[i]->gens, r[i]->best_score);
+    //printf("%d, %lf, %d, %lf\n", qap[i]->gens, qap[i]->best_score, r[i]->gens, r[i]->best_score);
     free_result(qap[i]);
     free_result(r[i]);
   }
