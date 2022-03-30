@@ -50,16 +50,17 @@ int main() {
     result** r = malloc(n * sizeof(result*));
 
     // QAP Training.
-    printf("Learning\n");
+    printf("QAP in progress...\n");
     for (int i = 0; i < n; i++){
         if (i != 0)
             free_graph(p->g);
         p->g = make_graph(c, columns, qubits);
         qap[i] = run_qap(p, d);
     }
+    export_results(qap, n, "./output/qap.csv");
 
     // R-QAP Training.
-    printf("Random\n");
+    printf("R-QAP in progress...\n");
     p->l_rate = 0.0;
     p->el_rate = 0.0;
     p->elite_sel_p = 0.0;
@@ -68,14 +69,7 @@ int main() {
         p->g = make_graph(c, columns, qubits);
         r[i] = run_qap(p, d);
     }
-
-    // Print statistics of QAP and R-QAP.
-    printf("Learning vs. Random\n");
-    for(int i = 0; i < n; i++){
-        printf("%d, %lf, %d, %lf\n", qap[i]->gens, qap[i]->best_score, r[i]->gens, r[i]->best_score);
-        free_result(qap[i]);
-        free_result(r[i]);
-    }
+    export_results(r, n, "./output/r-qap.csv");
 
     free(qap);
     free(r);

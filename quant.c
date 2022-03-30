@@ -1,4 +1,5 @@
 #include "quant.h"
+#include <stdio.h>
 
 q_state* r_q(){
     double r_1 = rand_double() * 2.0 * M_PI;
@@ -1090,4 +1091,21 @@ result* make_result(int gens, double best_score){
 
 void free_result(result* res){
   free(res);
+}
+
+void export_results(result** rs, int rs_len, char* file_path) {
+    FILE* f = fopen(file_path, "w");
+    if (f == NULL) {
+        printf("Error while opening %s!\n", file_path);
+        return;
+    }
+    char line[25];
+    fputs("no_of_generations,best_fitness\n", f);
+    for (int i = 0; i < rs_len; i++) {
+        sprintf(line, "%d,%lf\n", rs[i]->gens, rs[i]->best_score);
+        fputs(line, f);
+    }
+    fclose(f);
+    printf("Results written to %s!\n", file_path);
+    return;
 }

@@ -94,6 +94,8 @@ result* make_result(int gens, double best_score);
 
 void free_result(result*);
 
+void export_results(result** rs, int rs_len, char* file_path);
+
 q_state* r_q();
 q_state* r_q_qubits(int qubits);
 
