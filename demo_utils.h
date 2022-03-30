@@ -10,6 +10,12 @@ enum target_gate {
     toffoli,
 };
 
-int run_demo(enum target_gate g, char* qap_output_file, char* rqap_output_file);
+typedef struct demo_params {
+    enum target_gate gate;
+    char* qap_output_file;
+    char* rqap_output_file;
+} demo_params;
+
+int run_demo(demo_params ps);
 
 #endif

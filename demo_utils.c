@@ -1,6 +1,6 @@
 #include "demo_utils.h"
 
-int run_demo(enum target_gate g, char* qap_output_file, char* rqap_output_file) {
+int run_demo(demo_params ps) {
     srand(time(NULL));
 
     // Prepare function set.
@@ -21,7 +21,7 @@ int run_demo(enum target_gate g, char* qap_output_file, char* rqap_output_file) 
     f_set[8]  = make_function(q_swap(2, map), "Swap", 0);
     f_set[9]  = make_function(q_cv(), "Controlled-V", 0);
     f_set[10] = make_function(q_cvd(), "Controlled-V-Hermitian (C-V-dagger)", 0);
-    switch (g) {
+    switch (ps.gate) {
         case fredkin:
             d = fredkin_dataset(20);
             f_set[11] = make_function(q_toffoli(), "Toffoli", 0);
@@ -75,7 +75,7 @@ int run_demo(enum target_gate g, char* qap_output_file, char* rqap_output_file) 
         p->g = make_graph(c, columns, qubits);
         qap[i] = run_qap(p, d);
     }
-    export_results(qap, n, qap_output_file);
+    export_results(qap, n, ps.qap_output_file);
     end_time = clock();
     execution_time = ((double)(end_time - start_time)) / CLOCKS_PER_SEC;
     printf("QAP finished in %lfs!\n\n", execution_time);
@@ -91,7 +91,7 @@ int run_demo(enum target_gate g, char* qap_output_file, char* rqap_output_file) 
         p->g = make_graph(c, columns, qubits);
         r[i] = run_qap(p, d);
     }
-    export_results(r, n, rqap_output_file);
+    export_results(r, n, ps.rqap_output_file);
     end_time = clock();
     execution_time = ((double)(end_time - start_time)) / CLOCKS_PER_SEC;
     printf("R-QAP finished in %lfs!\n", execution_time);
