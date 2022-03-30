@@ -33,7 +33,7 @@ int main() {
     qap_graph* graph = make_graph(c, columns, qubits);
     dataset* d = fredkin_dataset(20);
     params* p = malloc(sizeof(params));
-    p->target_score = 1.0;
+    p->target_score = 0.98;
     p->ants = 50;
     p->max_runs = 20000;
     p->g = graph;
