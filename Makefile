@@ -1,5 +1,6 @@
-OBJECTS := QuantumCircuits-C/*c quant.c example.c $(main)
+OBJECTS := QuantumCircuits-C/*c quant.c example.c demo_fredkin.c $(main)
 CC=gcc
+output := demo_fredkin
 
 CFLAGS = -O2 -lgsl -lgslcblas -lm -g
 
