@@ -35,7 +35,7 @@ int main() {
     params* p = malloc(sizeof(params));
     p->target_score = 0.98;
     p->ants = 50;
-    p->max_runs = 20000;
+    p->max_runs = 100000;
     p->g = graph;
     p->p_min = 0.1;
     p->p_max = 10.0;
@@ -45,7 +45,7 @@ int main() {
     p->p_evap = 0.1;
     p->elite_sel_p = 0.0;
     p->cooperate_bonus = 0.0;
-    int n = 100;
+    int n = 5;
     result** qap = malloc(n * sizeof(result*));
     result** r = malloc(n * sizeof(result*));
 
